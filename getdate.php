@@ -43,6 +43,50 @@ function csv_to_array($filename='', $delimiter=',')
 	return $data;
 }
 
+//
+//
+//
+function address2geometry($address) {
+	$api_key = "AIzaSyCNw6NuuVlyhvX6NuW-2kU_dNyHbRUBFQw";
+	$address = '高雄市仁武區八卦里京中五街300號';
+	$get_curl_url = 'http://maps.googleapis.com/maps/api/geocode/json?address='.$address.'&sensor=FALSE';
+	// var_dump($get_curl_url);
+	// echo '<a href="'.$get_curl_url.'">'.$get_curl_url.'</a>';
+
+	// 建立CURL連線
+	$ch = curl_init();
+
+	// 設定擷取的URL網址
+	curl_setopt($ch, CURLOPT_URL, "$get_curl_url");
+	curl_setopt($ch, CURLOPT_HEADER, false);
+
+	//將curl_exec()獲取的訊息以文件流的形式返回，而不是直接輸出。
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+
+	// 執行
+	$map_json_curl = curl_exec($ch);
+
+	$map_json = json_decode($map_json_curl, true);
+	// var_dump($map_json);
+	// print_r($map_json);
+	$json_debug=NULL;
+	// 取得GPS資訊
+	$json_value["lat"] 		= $map_json["results"][0]["geometry"]["location"]["lat"];
+	$json_value["lng"] 	= $map_json["results"][0]["geometry"]["location"]["lng"];
+
+	echo "<br>JSON debug:  ";
+	// echo $map_json[results];
+	var_dump($json_value);
+	
+	sleep(1);
+	// 關閉CURL連線
+	curl_close($ch);
+
+	return($json_value);
+}
+//
+//
+
 
 $filename = 'trash_map.csv';
 $arr = csv_to_array($filename);
@@ -56,15 +100,19 @@ foreach ($arr as &$line) {
 	if($line["行政區"] == "仁武區" AND $line["里別"] == "八卦里") {
 		// var_dump($line);
 		// $address = $i.','.$country.$line["行政區"].$line["里別"].$line["停留地點"].',,,';
-		$address = $country.$line["行政區"].$line["里別"].$line["停留地點"].','.$line["停留點編號"].'_'.$line["停留時間"];
-		$address = trim($address);
+		$address = $country.$line["行政區"].$line["里別"].$line["停留地點"];
+		$address_desc = $line["停留時間"].'_'.$line["責任區"].'_'.$line["車次"].'_'.$line["停留點編號"];
+		// $address = trim($address).','.$i.'_'.base64_encode($address_desc);
 		// var_dump($address);
 		echo $address."\n";
+		
+		$address_geometry = address2geometry($address);
+		var_dump($address_geometry);
 		$i++;
 	}
 	
-	if($i == 50) {
-	  //break;
+	if($i == 3) {
+	  break;
 	}
 }
 
