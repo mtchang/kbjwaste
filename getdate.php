@@ -6,8 +6,15 @@
 // user: http://gissrv4.sinica.edu.tw/gis/tools/geocoding.aspx
 //
 // by mtchang.tw@gmail.com
+//
+// https://developers.google.com/maps/documentation/geocoding/?hl=zh-tw
+//
+//
 
 
+// 
+// 將 csv 檔案匯入成為陣列
+//
 /**
  * Convert a comma separated file into an associated array.
  * The first row should contain the array keys.
@@ -44,7 +51,7 @@ function csv_to_array($filename='', $delimiter=',')
 }
 
 //
-//
+// 把地址轉換為google map 經緯度資訊
 //
 function address2geometry($address) {
 	$api_key = "AIzaSyCNw6NuuVlyhvX6NuW-2kU_dNyHbRUBFQw";
@@ -72,7 +79,7 @@ function address2geometry($address) {
 	$json_debug=NULL;
 	// 取得GPS資訊
 	$json_value["lat"] 		= $map_json["results"][0]["geometry"]["location"]["lat"];
-	$json_value["lng"] 	= $map_json["results"][0]["geometry"]["location"]["lng"];
+	$json_value["lng"] 		= $map_json["results"][0]["geometry"]["location"]["lng"];
 
 	echo "<br>JSON debug:  ";
 	// echo $map_json[results];
@@ -86,32 +93,76 @@ function address2geometry($address) {
 }
 //
 //
+//
+
+//
+// 將垃圾車停留時間轉換成為 sql time 格式
+//
+function strtime2time($stay_time_var) {
+	
+	// $stay_time_var = $line["停留時間"];
+	$stay_time_var = preg_replace('/ /', "", $stay_time_var);
+	$stay_time_var = preg_replace('/～/', "-", $stay_time_var);
+	//var_dump($stay_time_var);
+	$stay_time_var = preg_replace('/：/', ":", $stay_time_var);
+	//var_dump($stay_time_var);
+	$route_time = explode("-", $stay_time_var, 20);
+	//var_dump($route_time);
+	
+	$route_time_0_str = trim($route_time['0']);
+	//var_dump($route_time_0_str);
+	$route_time['0'] = date('H:i:s', strtotime($route_time_0_str));
+	//var_dump($route_time['0']);
+	
+	$route_time_1_str = trim($route_time['1']);
+	//var_dump($route_time_1_str);
+	$route_time['1'] = date('H:i:s', strtotime($route_time_1_str));
+	//var_dump($route_time['1']);		
+	
+	return($route_time);
+}
+//
+//
+//
 
 
 $filename = 'trash_map.csv';
+// 把檔案內容轉換為陣列
 $arr = csv_to_array($filename);
 
+// 針對高雄市政府釋放出來的 opendata 轉換並匯入 SQL
+// http://data.kaohsiung.gov.tw/Opendata/DetailList.aspx?CaseNo1=AH&CaseNo2=10&Lang=C&FolderType=O
 $country = "高雄市";
+
 
 $i=0;
 foreach ($arr as &$line) {
 	// var_dump($contents);
 	//$line = str_getcsv($value);
 	if($line["行政區"] == "仁武區" AND $line["里別"] == "八卦里") {
+		// 責任區,車次,停留點編號,行政區,里別,停留地點,停留時間,回收日
 		// var_dump($line);
+
+		// 拆解時間
+		var_dump($line["停留時間"]);
+		$st = strtime2time($line["停留時間"]);
+		var_dump($st);
+		// 拆解回收日
+	
+		// 轉換地址
 		// $address = $i.','.$country.$line["行政區"].$line["里別"].$line["停留地點"].',,,';
 		$address = $country.$line["行政區"].$line["里別"].$line["停留地點"];
 		$address_desc = $line["停留時間"].'_'.$line["責任區"].'_'.$line["車次"].'_'.$line["停留點編號"];
 		// $address = trim($address).','.$i.'_'.base64_encode($address_desc);
 		// var_dump($address);
 		echo $address."\n";
-		
-		$address_geometry = address2geometry($address);
-		var_dump($address_geometry);
+		// 將地址轉換為經緯度
+		//$address_geometry = address2geometry($address);
+		//var_dump($address_geometry);
 		$i++;
 	}
 	
-	if($i == 3) {
+	if($i == 50) {
 	  break;
 	}
 }
