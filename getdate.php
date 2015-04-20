@@ -55,7 +55,7 @@ function csv_to_array($filename='', $delimiter=',')
 //
 function address2geometry($address) {
 	$api_key = "AIzaSyCNw6NuuVlyhvX6NuW-2kU_dNyHbRUBFQw";
-	$address = '高雄市仁武區八卦里京中五街300號';
+	// $address = '高雄市仁武區八卦里京中五街300號';
 	$get_curl_url = 'http://maps.googleapis.com/maps/api/geocode/json?address='.$address.'&sensor=FALSE';
 	// var_dump($get_curl_url);
 	// echo '<a href="'.$get_curl_url.'">'.$get_curl_url.'</a>';
@@ -81,9 +81,9 @@ function address2geometry($address) {
 	$json_value["lat"] 		= $map_json["results"][0]["geometry"]["location"]["lat"];
 	$json_value["lng"] 		= $map_json["results"][0]["geometry"]["location"]["lng"];
 
-	echo "<br>JSON debug:  ";
+	//echo "<br>JSON debug:  ";
 	// echo $map_json[results];
-	var_dump($json_value);
+	//var_dump($json_value);
 	
 	sleep(1);
 	// 關閉CURL連線
@@ -121,9 +121,28 @@ function strtime2time($stay_time_var) {
 	
 	return($route_time);
 }
+
 //
+// 將回收日轉換為阿拉伯數字
 //
+function str2recoveryday($str_recoveryday) {
+	$str_recoveryday = preg_replace('/ /', "", $str_recoveryday);
+	$str_recoveryday = preg_replace('/、/', ",", $str_recoveryday);
+	$str_recoveryday = preg_replace('/一/', "1", $str_recoveryday);
+	$str_recoveryday = preg_replace('/二/', "2", $str_recoveryday);
+	$str_recoveryday = preg_replace('/三/', "3", $str_recoveryday);
+	$str_recoveryday = preg_replace('/四/', "4", $str_recoveryday);
+	$str_recoveryday = preg_replace('/五/', "5", $str_recoveryday);
+	$str_recoveryday = preg_replace('/六/', "6", $str_recoveryday);
+	$str_recoveryday = preg_replace('/日/', "7", $str_recoveryday);
+	return($str_recoveryday);
+}
+
+// ======================================================================
 //
+// main() 
+//
+// ======================================================================
 
 
 $filename = 'trash_map.csv';
@@ -141,32 +160,52 @@ foreach ($arr as &$line) {
 	//$line = str_getcsv($value);
 	if($line["行政區"] == "仁武區" AND $line["里別"] == "八卦里") {
 		// 責任區,車次,停留點編號,行政區,里別,停留地點,停留時間,回收日
-		// var_dump($line);
+		//var_dump($line);
 
 		// 拆解時間
-		var_dump($line["停留時間"]);
-		$st = strtime2time($line["停留時間"]);
-		var_dump($st);
+		$time_range = strtime2time($line["停留時間"]);
+		//var_dump($time_range);
+		
 		// 拆解回收日
+		$recovery_day = str2recoveryday($line["回收日"]);
+		//var_dump($recovery_day);
 	
 		// 轉換地址
 		// $address = $i.','.$country.$line["行政區"].$line["里別"].$line["停留地點"].',,,';
 		$address = $country.$line["行政區"].$line["里別"].$line["停留地點"];
-		$address_desc = $line["停留時間"].'_'.$line["責任區"].'_'.$line["車次"].'_'.$line["停留點編號"];
-		// $address = trim($address).','.$i.'_'.base64_encode($address_desc);
-		// var_dump($address);
-		echo $address."\n";
+		//echo $address."\n";
 		// 將地址轉換為經緯度
-		//$address_geometry = address2geometry($address);
+		$address_geometry = address2geometry($address);
 		//var_dump($address_geometry);
+		// sleep(2);
+		
+		$place['country'] 		= 	$country;
+		$place['area'] 			= 	$line["責任區"];
+		$place['trinNO'] 		= 	$line["車次"];
+		$place['stayNO'] 		= 	$line["停留點編號"];
+		$place['township'] 		= 	$line["行政區"];
+		$place['hometown'] 		= 	$line["里別"];
+		$place['stayaddress'] 	= 	$line["停留地點"];
+		$place['RecyclingDay'] 	= 	$recovery_day;
+		$place['staytime'] 		= 	$line["停留時間"];
+		$place['staytime_start']= 	$time_range["0"];
+		$place['staytime_end'] 	= 	$time_range["1"];
+		$place['Longitude'] 	= 	$address_geometry["lng"];
+		$place['Latitude'] 		= 	$address_geometry["lat"];
+		// var_dump($place);
+		$insertsql		=	"INSERT INTO `garbagetruck_route` 
+		(`gID`, `area`, `trainNO`, `stayNO`, `township`, `hometown`, `stayaddress`, `RecyclingDay`, `staytime`, `staytime_start`, `staytime_end`, `Longitude`, `Latitude`, `updatetime`) 
+		VALUES (NULL, '".$place['area']."', '".$place['trinNO']."', '".$place['stayNO']."', '".$place['township']."', '".$place['hometown']."', '".$place['stayaddress']."', '".$place['RecyclingDay']."', '".$place['staytime'] ."', '".$place['staytime_start']."', '".$place['staytime_end']."', '".$place['Longitude']."', '".$place['Latitude']."', CURRENT_TIMESTAMP);";
+		echo "\n".$insertsql;
+		
 		$i++;
 	}
 	
-	if($i == 50) {
+	if($i == 5) {
 	  break;
 	}
 }
-
+echo "\n";
 
 
 ?>
