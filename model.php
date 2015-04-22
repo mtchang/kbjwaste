@@ -1,0 +1,10 @@
+<?php
+//
+// model
+//
+
+function model() {
+	
+}
+
+?>
