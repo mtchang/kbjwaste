@@ -56,6 +56,7 @@ function csv_to_array($filename='', $delimiter=',')
 function address2geometry($address) {
 	$api_key = "AIzaSyCNw6NuuVlyhvX6NuW-2kU_dNyHbRUBFQw";
 	// $address = '高雄市仁武區八卦里京中五街300號';
+	$address = urlencode(trim($address));
 	$get_curl_url = 'http://maps.googleapis.com/maps/api/geocode/json?address='.$address.'&sensor=FALSE';
 	// var_dump($get_curl_url);
 	// echo '<a href="'.$get_curl_url.'">'.$get_curl_url.'</a>';
@@ -74,7 +75,7 @@ function address2geometry($address) {
 	$map_json_curl = curl_exec($ch);
 
 	$map_json = json_decode($map_json_curl, true);
-	// var_dump($map_json);
+	//var_dump($map_json);
 	// print_r($map_json);
 	$json_debug=NULL;
 	// 取得GPS資訊
@@ -101,7 +102,9 @@ function address2geometry($address) {
 function strtime2time($stay_time_var) {
 	
 	// $stay_time_var = $line["停留時間"];
+	//var_dump($stay_time_var);
 	$stay_time_var = preg_replace('/ /', "", $stay_time_var);
+	$stay_time_var = preg_replace('/~/', "-", $stay_time_var);
 	$stay_time_var = preg_replace('/～/', "-", $stay_time_var);
 	//var_dump($stay_time_var);
 	$stay_time_var = preg_replace('/：/', ":", $stay_time_var);
@@ -145,10 +148,11 @@ function str2recoveryday($str_recoveryday) {
 // ======================================================================
 
 
-$filename = 'trash_map.csv';
+$filename = 'opendata/kh_trash_map.csv';
 // 把檔案內容轉換為陣列
 $arr = csv_to_array($filename);
 
+echo "\n-- 檔案 $filename 資料數量：".count($arr)."\n";
 // 針對高雄市政府釋放出來的 opendata 轉換並匯入 SQL
 // http://data.kaohsiung.gov.tw/Opendata/DetailList.aspx?CaseNo1=AH&CaseNo2=10&Lang=C&FolderType=O
 $country = "高雄市";
@@ -156,54 +160,51 @@ $country = "高雄市";
 
 $i=0;
 foreach ($arr as &$line) {
-	// var_dump($contents);
-	//$line = str_getcsv($value);
-	if($line["行政區"] == "仁武區" AND $line["里別"] == "八卦里") {
-		// 責任區,車次,停留點編號,行政區,里別,停留地點,停留時間,回收日
-		//var_dump($line);
+	// 責任區,車次,停留點編號,行政區,里別,停留地點,停留時間,回收日
+	//var_dump($line);
 
-		// 拆解時間
-		$time_range = strtime2time($line["停留時間"]);
-		//var_dump($time_range);
-		
-		// 拆解回收日
-		$recovery_day = str2recoveryday($line["回收日"]);
-		//var_dump($recovery_day);
+	// 拆解時間
+	$time_range = strtime2time($line["停留時間"]);
+	//var_dump($time_range);
 	
-		// 轉換地址
-		// $address = $i.','.$country.$line["行政區"].$line["里別"].$line["停留地點"].',,,';
-		$address = $country.$line["行政區"].$line["里別"].$line["停留地點"];
-		//echo $address."\n";
-		// 將地址轉換為經緯度
-		$address_geometry = address2geometry($address);
-		//var_dump($address_geometry);
-		// sleep(2);
-		
-		$place['country'] 		= 	$country;
-		$place['area'] 			= 	$line["責任區"];
-		$place['trinNO'] 		= 	$line["車次"];
-		$place['stayNO'] 		= 	$line["停留點編號"];
-		$place['township'] 		= 	$line["行政區"];
-		$place['hometown'] 		= 	$line["里別"];
-		$place['stayaddress'] 	= 	$line["停留地點"];
-		$place['RecyclingDay'] 	= 	$recovery_day;
-		$place['staytime'] 		= 	$line["停留時間"];
-		$place['staytime_start']= 	$time_range["0"];
-		$place['staytime_end'] 	= 	$time_range["1"];
-		$place['Longitude'] 	= 	$address_geometry["lng"];
-		$place['Latitude'] 		= 	$address_geometry["lat"];
-		// var_dump($place);
-		$insertsql		=	"INSERT INTO `garbagetruck_route` 
-		(`gID`, `area`, `trainNO`, `stayNO`, `township`, `hometown`, `stayaddress`, `RecyclingDay`, `staytime`, `staytime_start`, `staytime_end`, `Longitude`, `Latitude`, `updatetime`) 
-		VALUES (NULL, '".$place['area']."', '".$place['trinNO']."', '".$place['stayNO']."', '".$place['township']."', '".$place['hometown']."', '".$place['stayaddress']."', '".$place['RecyclingDay']."', '".$place['staytime'] ."', '".$place['staytime_start']."', '".$place['staytime_end']."', '".$place['Longitude']."', '".$place['Latitude']."', CURRENT_TIMESTAMP);";
-		echo "\n".$insertsql;
-		
-		$i++;
-	}
+	// 拆解回收日
+	$recovery_day = str2recoveryday($line["回收日"]);
+	//var_dump($recovery_day);
+
+	// 轉換地址
+	// $address = $i.','.$country.$line["行政區"].$line["里別"].$line["停留地點"].',,,';
+	$address = $country.$line["行政區"].$line["里別"].$line["停留地點"];
+	//echo $address."\n";
+	// 將地址轉換為經緯度
+	$address_geometry = address2geometry($address);
+	//var_dump($address_geometry);
+	// sleep(2);
 	
-	if($i == 5) {
-	  break;
-	}
+	$place['country'] 		= 	$country;
+	$place['area'] 			= 	$line["責任區"];
+	$place['trinNO'] 		= 	$line["車次"];
+	$place['stayNO'] 		= 	$line["停留點編號"];
+	$place['township'] 		= 	$line["行政區"];
+	$place['hometown'] 		= 	$line["里別"];
+	$place['stayaddress'] 	= 	trim($line["停留地點"]);
+	$place['RecyclingDay'] 	= 	$recovery_day;
+	$place['staytime'] 		= 	$line["停留時間"];
+	$place['staytime_start']= 	$time_range["0"];
+	$place['staytime_end'] 	= 	$time_range["1"];
+	$place['Longitude'] 	= 	$address_geometry["lng"];
+	$place['Latitude'] 		= 	$address_geometry["lat"];
+	// var_dump($place);
+	$insertsql		=	"-- $i,$address \n".
+	"INSERT INTO `garbagetruck_route` 
+	(`gID`, `area`, `trainNO`, `stayNO`, `township`, `hometown`, `stayaddress`, `RecyclingDay`, `staytime`, `staytime_start`, `staytime_end`, `Longitude`, `Latitude`, `updatetime`) 
+	VALUES (NULL, '".$place['area']."', '".$place['trinNO']."', '".$place['stayNO']."', '".$place['township']."', '".$place['hometown']."', '".$place['stayaddress']."', '".$place['RecyclingDay']."', '".$place['staytime'] ."', '".$place['staytime_start']."', '".$place['staytime_end']."', '".$place['Longitude']."', '".$place['Latitude']."', CURRENT_TIMESTAMP);";
+	echo "\n".$insertsql;
+	
+	$i++;
+	
+	//if($i == 3) {
+	//  break;
+	//}
 }
 echo "\n";
 

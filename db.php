@@ -9,11 +9,11 @@ $system_mode = 'developer';
 if($system_mode == 'developer') {
 	// sql DB infomation -- for develop
 	$dbhost		='localhost';
-	$dbname		='kbjwaste';
-	$dbuser		='';
-	$dbpassword	='';
+	$dbname		='kbjwaste';	
+	$dbuser		='kbjwaste';
+	$dbpassword	='kbj1234';
 	// ---- WEB
-	$host_url 	= 'http://localhost/kbjwaste/';
+	$host_url 	= 'http://antai.jangmt.com/kbjwaste/';
 }elseif($system_mode == 'release') {
 	// sql DB infomation -- for develop
 	$dbhost		='localhost';
