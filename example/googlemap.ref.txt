@@ -1,0 +1,6 @@
+https://hpneo.github.io/gmaps/examples.html
+google maps api with less pain and more fun
+
+Google Maps JavaScript API v3
+https://developers.google.com/maps/documentation/javascript/examples/?hl=zh-tw
+
