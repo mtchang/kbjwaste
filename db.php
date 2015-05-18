@@ -11,7 +11,7 @@ if($system_mode == 'developer') {
 	$dbhost		='localhost';
 	$dbname		='kbjwaste';	
 	$dbuser		='kbjwaste';
-	$dbpassword	='oooxxx';
+	$dbpassword	='kbj1234';
 	// ---- WEB
 	$host_url 	= 'http://antai.jangmt.com/kbjwaste/';
 }elseif($system_mode == 'release') {
