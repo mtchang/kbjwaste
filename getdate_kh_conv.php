@@ -52,12 +52,18 @@ function csv_to_array($filename='', $delimiter=',')
 
 //
 // 把地址轉換為google map 經緯度資訊
+// https://console.developers.google.com/project/407897298610/apiui/apiview/geocoding_backend/overview?authuser=0
+// https://developers.google.com/maps/documentation/geocoding/?hl=zh_TW
+// https://maps.googleapis.com/maps/api/geocode/json?address=122+Flinders+St,+Darlinghurst,+NSW,+Australia&sensor=false&key=AIzaSyAmlln9yhDTC576DfHyMp6Xbo6GpbNm7X0
+// 使用狀況： https://code.google.com/apis/console/b/0/?noredirect#project:407897298610:stats
 //
 function address2geometry($address) {
-	$api_key = "AIzaSyCNw6NuuVlyhvX6NuW-2kU_dNyHbRUBFQw";
+	$api_key = "AIzaSyAmlln9yhDTC576DfHyMp6Xbo6GpbNm7X0";
+	// by mtchang.tw@gmail.com key in my ip ranges
 	// $address = '高雄市仁武區八卦里京中五街300號';
 	$address = urlencode(trim($address));
-	$get_curl_url = 'http://maps.googleapis.com/maps/api/geocode/json?address='.$address.'&sensor=FALSE';
+	$get_curl_url = 'https://maps.googleapis.com/maps/api/geocode/json?address='.$address.'&sensor=false&key='.$api_key;
+	// $get_curl_url = 'https://maps.googleapis.com/maps/api/geocode/json?address='.$address.'&sensor=false';
 	// var_dump($get_curl_url);
 	// echo '<a href="'.$get_curl_url.'">'.$get_curl_url.'</a>';
 
@@ -78,22 +84,30 @@ function address2geometry($address) {
 	//var_dump($map_json);
 	// print_r($map_json);
 	$json_debug=NULL;
-	// 取得GPS資訊
-	$json_value["lat"] 		= $map_json["results"][0]["geometry"]["location"]["lat"];
-	$json_value["lng"] 		= $map_json["results"][0]["geometry"]["location"]["lng"];
+	$json_value["status"]				= $map_json["status"];
+	// var_dump($json_value["status"]);
 
-	//echo "<br>JSON debug:  ";
-	// echo $map_json[results];
-	//var_dump($json_value);
+	// JSON 回傳正確資料才工作
+	if($json_value["status"] == "OK") {
+		// 取得GPS資訊
+		$json_value["lat"] 		= $map_json["results"][0]["geometry"]["location"]["lat"];
+		$json_value["lng"] 		= $map_json["results"][0]["geometry"]["location"]["lng"];
+		//echo "<br>JSON debug:  ";
+		//echo $map_json[results];
+		//var_dump($json_value);
+	}else{
+		$json_value["lat"] 			= $json_value["status"];
+		$json_value["lng"] 		= $map_json["error_message"];
+	}
 	
-	sleep(1);
+	// sleep(1);
 	// 關閉CURL連線
 	curl_close($ch);
 
 	return($json_value);
 }
 //
-//
+// end of curl
 //
 
 //
@@ -102,7 +116,7 @@ function address2geometry($address) {
 function strtime2time($stay_time_var) {
 	
 	// $stay_time_var = $line["停留時間"];
-	//var_dump($stay_time_var);
+	// var_dump($stay_time_var);
 	$stay_time_var = preg_replace('/ /', "", $stay_time_var);
 	$stay_time_var = preg_replace('/~/', "-", $stay_time_var);
 	$stay_time_var = preg_replace('/～/', "-", $stay_time_var);
@@ -117,10 +131,14 @@ function strtime2time($stay_time_var) {
 	$route_time['0'] = date('H:i:s', strtotime($route_time_0_str));
 	//var_dump($route_time['0']);
 	
+	// 如果只有一個時間, 則結束時間和開始時間一樣
+	if(count($route_time) == 1) {
+		$route_time['1'] = $route_time['0'];
+	}
 	$route_time_1_str = trim($route_time['1']);
 	//var_dump($route_time_1_str);
 	$route_time['1'] = date('H:i:s', strtotime($route_time_1_str));
-	//var_dump($route_time['1']);		
+	//var_dump($route_time['1']);
 	
 	return($route_time);
 }
@@ -180,7 +198,6 @@ $i_end		= $i_start + $i_count - 1;
 echo "\n-- 從第 $i_start 筆資料起，顯示 $i_count 筆。結束在 $i_end 筆。\n";
 
 foreach ($arr as &$line) {
-	
 	if($i >= $i_start AND $i <= $i_end ) { 
 		// 責任區,車次,停留點編號,行政區,里別,停留地點,停留時間,回收日
 		//var_dump($line);
