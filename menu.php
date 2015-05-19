@@ -27,21 +27,16 @@ $page_view = '
             </div>
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li class="active"><a href="#">'.$system_config['host_name'] .'</a></li>
                 <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">'.$system_config['trash_title'].'<span class="caret"></span></a>
                   <ul class="dropdown-menu" role="menu">
-                    <li><a href="#">Action</a></li>
-                    <li><a href="#">Another action</a></li>
-                    <li><a href="#">Something else here</a></li>
-                    <li class="divider"></li>
-                    <li class="dropdown-header">Nav header</li>
-                    <li><a href="#">Separated link</a></li>
-                    <li><a href="#">One more separated link</a></li>
+                    <li><a href="#">'.$system_config['trash'].'</a></li>
+                    <li><a href="#">'.$system_config['trash_detail'].'</a></li>
                   </ul>
                 </li>
+                <li><a href="#about">'.$system_config['news'].'</a></li>
+                <li><a href="#contact">'.$system_config['readme_and_feedback'].'</a></li>
               </ul>
             </div>
           </div>
@@ -117,18 +112,18 @@ $page_view = $page_view.'
       <div class="row">
         <div class="col-lg-4">
           <img class="img-circle" src="./images/map2.png" alt="Generic placeholder image" width="140" height="140">
-          <h2>'.$system_config['trash'].'</h2>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          <h2>'.$system_config['trash_title'].'</h2>
+          <p><a class="btn btn-primary" href="#" role="button">前往</a></p>
         </div><!-- /.col-lg-4 -->
         <div class="col-lg-4">
           <img class="img-circle" src="./images/board.jpg" alt="Generic placeholder image" width="140" height="140">
           <h2>'.$system_config['news'].'</h2>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          <p><a class="btn btn-primary" href="#" role="button">前往</a></p>
         </div><!-- /.col-lg-4 -->
         <div class="col-lg-4">
           <img class="img-circle" src="./images/question.png" alt="Generic placeholder image" width="140" height="140">
           <h2>'.$system_config['readme_and_feedback'].'</h2>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          <p><a class="btn btn-primary" href="#" role="button">前往</a></p>
         </div><!-- /.col-lg-4 -->
       </div><!-- /.row -->
 ';
