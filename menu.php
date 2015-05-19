@@ -113,7 +113,16 @@ $page_view = $page_view.'
         <div class="col-lg-4">
           <img class="img-circle" src="./images/map2.png" alt="Generic placeholder image" width="140" height="140">
           <h2>'.$system_config['trash_title'].'</h2>
-          <p><a class="btn btn-primary" href="#" role="button">前往</a></p>
+          <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+              前往
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">'.$system_config['trash'].'</a></li>
+              <li role="presentation"><a role="menuitem" tabindex="-1" href="#">'.$system_config['trash_detail'].'</a></li>
+            </ul>
+          </div>
         </div><!-- /.col-lg-4 -->
         <div class="col-lg-4">
           <img class="img-circle" src="./images/board.jpg" alt="Generic placeholder image" width="140" height="140">
